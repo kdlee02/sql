@@ -133,7 +133,7 @@ INSERT INTO Charts (chart_id, treat_id, doc_id, pat_id, nur_id, chart_contents) 
 ('s_240303003', 240303003, 091001, 4234, 130211, '입원치료'),
 ('p_240308087', 240308087, 062019, 7643, 071018, '입원치료');
 
--- 4.1
+-- 홍길동 의사가 맡고 있던 담당 진료과목이 피부과에서 소아과로 변경
 select major_treat
 from doctors
 where doc_name = '홍길동';
@@ -146,7 +146,7 @@ select major_treat
 from doctors
 where doc_name = '홍길동';
 
--- 4.2
+-- 라하나 간호사는 대학원 진학으로 오늘까지만 근무하고 퇴사하게 되어 삭제
 select *
 from Nurses
 where nur_name = '라하나';
@@ -158,23 +158,23 @@ select *
 from Nurses
 where nur_name = '라하나';
 
--- 5.1
+-- 담당진료과목이 ‘소아과’인 의사에 대한 정보를 출력
 SELECT *
 FROM DOCTORS
 WHERE major_treat = '소아과';
 
--- 5.2
+-- 홍길동 의사에게 진료받은 환자에 대한 모든 정보를 출력
 SELECT *
 from Patients
 where doc_id = (select doc_id from Doctors where doc_name = '홍길동');
 
--- 5.3
+-- 진료날짜가 2023년 12월인 환자에 대한 모든 정보를 오름차순 정렬(날짜기준)하여 출력
 select *
 from patients, treatments
 where patients.pat_id = treatments.pat_id AND YEAR(treatments.treat_date) = 2023 AND MONTH(treatments.treat_date) = 12
 ORDER BY treatments.TREAT_DATE ASC;
 
--- 5.4
+-- 간호사 이름이 ‘김’으로 시작하는 모든 간호사 정보를 출력
 select *
 from nurses
 where nur_name like '김%';
