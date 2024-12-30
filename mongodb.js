@@ -55,7 +55,6 @@ db.posts.find({category: "Technology"}).sort({ date: -1 });
 
 //4. 데이터 수정
 //① MongoDB Basics 포스트에 댓글 추가 (comment 필드에 {author: "Jane Smith", text: "Great post!"} 추가)
-//* 배열 업데이트는 다음 장 내용 참고
 db.posts.updateOne(
 { title: "MongoDB Basics" },
 { $push: { comment: {author: "Jane Smith", text: "Great post!"} } }
