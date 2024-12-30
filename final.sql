@@ -270,8 +270,8 @@ VALUES ('S1','문학','L1'),
 ('S4','과학일반','L4');
 
 
-#HW2-3 (1) (1): 대출 시 대출 도서 개수 확인 + 연체된 경우 대출 불가 함수
-#HW2-3 (1) (1): reserve에 데이터 삽입 시 각 학생 예약 개수 확인 후 3개 넘으면 데이터 추가 x
+#1: 도서 대출 시(checkout_sys에 데이터 삽입 시) 대출 도서 개수를 검색하고 3개 미만, 연체가 없는 경우에만 대출을 허용하는 프로시저 check_num_checkout을 작성
+	
 DELIMITER //
 create procedure check_num_checkout(
 	IN bookid int,
@@ -292,32 +292,28 @@ create procedure check_num_checkout(
 			INSERT INTO checkout_sys(book_id,checkout_id,std_id,date_keep,date_ch, date_prereturn, date_return, machine_id,price_overdue,times_extension,return_0)
 			VALUES(bookid,checkoutid,stdid,datekeep,datech,dateprereturn,datereturn,machineid,priceoverdue,timesextension,return0);
 		ELSE
-			# HW2-3 (1) (2): 대출 조건을 만족 못 하는 경우, 다음 명령을 수행하도록 한다. - SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '대출불가합니다'
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '대출불가합니다';
 		END IF;
 END //
 DELIMITER ;
-   
-drop procedure check_num_checkout;
+
+# 대출이 만족될 경우 새로운 등록번호, 대출번호, 학번, 보관일, 대출일, 반납예정일, 반납일, 대출반납기번호, 연체료, 연장횟수, 반납여부가 checkout_sys에 삽입되며, 함수 호출하는 예시
 call check_num_checkout(30, 'CK8' ,'B918231', '2023-06-01', NULL, NULL, NULL, 'M5', NULL, NULL, 0);
 call check_num_checkout(45, 'CK9', 'B712423', '2023-06-01', NULL, NULL, NULL, 'M3', NULL, NULL, 0);
 call check_num_checkout(46, 'CK10', 'B712423', '2023-06-01', NULL, NULL, NULL, 'M3', NULL, NULL, 0);
 call check_num_checkout(78, 'CK11', 'B862331', '2023-06-01', NULL, NULL, NULL, 'M1', NULL, NULL, 0);
 
 
-# HW2-3 (1) (3) 위의 프로시저의 정상 동작을 확인하기 위해 다음 SQL문을 실행해 볼 것
+# 위의 프로시저의 정상 동작을 확인하기 위해 다음 SQL문을 실행
 CALL check_num_checkout('101', 'CK13', 'B935620', '2023-06-01', NULL, NULL, NULL, 'M2', NULL, NULL, 0);
 CALL check_num_checkout('102', 'CK14', 'B935620', '2023-06-01', NULL, NULL, NULL, 'M2', NULL, NULL, 0);
-
 
 SELECT COUNT(*) AS number_of_books_checked_out
 FROM checkout_sys
 WHERE std_id = 'B935620' AND date_return IS NULL;
  
  
-#HW2-3 (2): checkout_sys 들어오면 자동으로 checkout_return 테이블에도 insert
-
-drop trigger AfterInsert;
+#2 checkout_sys에 데이터가 삽입될 때 checkout_return 테이블에도 Insert가 발생하는 트리거 작성
 
 DELIMITER //
 CREATE TRIGGER AfterInsert
@@ -328,18 +324,19 @@ BEGIN
 END //
 DELIMITER ;
 
+# 트리거가 정상 동작하는지 확인하는 SQL문
 INSERT INTO checkout_sys (std_id, checkout_id, book_id, date_keep, date_ch, date_prereturn, date_return, machine_id,
 price_overdue, times_extension, return_0)
 VALUES ('B763523', 'CK12', 64, '2023-06-01', NULL, NULL, NULL, 'M7', NULL, NULL, 0);
 SELECT * FROM checkout_return WHERE checkout_id = 'CK12';
-#SET SQL_SAFE_UPDATES = 0;
 
 select *
 from checkout_sys;
 select *
 from checkout_return;
 
-# HW2-3 (3) 대출일(checkout_sys.date_ch)이 업데이트 되는 경우, 21일 후로 반납예정일(checkout_sys.date_prereturn)이 자동 계산(+21일) 되는 트리거를 작성
+
+#3 보관 중이던 대출도서가 픽업을 통해 대출일(checkout_sys.date_ch)이 업데이트 되는 경우, 21일 후로 반납예정일(checkout_sys.date_prereturn)이 자동 계산(+21일) 되는 트리거를 작성
 DELIMITER //
 
 CREATE TRIGGER update_date_prereturn
@@ -352,9 +349,8 @@ BEGIN
 END //
 DELIMITER ;
 
-select *
-from checkout_sys;
 
+# 트리거가 정상 동작하는지 확인하는 SQL문
 UPDATE checkout_sys
 SET date_ch = '2023-06-03'
 WHERE checkout_id = 'CK12';
